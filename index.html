@@ -5,112 +5,91 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ODBIT | Dashboard</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-    body, html {
-      height: 100%;
-      background-color: #121212;
-      color: #eee;
-      display: flex;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body { display: flex; height: 100vh; background-color: #1e1e1e; color: #fff; }
     .sidebar {
-      width: 240px;
-      background-color: #1e1e1e;
-      border-right: 1px solid #333;
+      width: 250px;
+      background-color: #111;
       padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 20px;
+      border-right: 1px solid #333;
     }
-
     .sidebar button {
-      background: none;
+      background-color: #222;
       border: none;
-      color: #ccc;
-      font-size: 1rem;
+      padding: 12px;
+      color: #fff;
       text-align: left;
-      padding: 10px;
+      font-size: 1rem;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: background 0.3s ease;
     }
-
     .sidebar button:hover {
-      background-color: #2a2a2a;
+      background-color: #333;
     }
-
     .main {
-      flex-grow: 1;
-      padding: 40px;
+      flex: 1;
+      padding: 30px;
     }
-
-    .welcome {
+    h1 {
       font-size: 2rem;
       margin-bottom: 20px;
     }
-
-    .admin-panel {
+    #admin-panel {
       margin-top: 30px;
-      border-top: 1px solid #444;
-      padding-top: 20px;
     }
-
-    .admin-panel h3 {
-      font-size: 1.5rem;
-      margin-bottom: 10px;
-      color: #00aaff;
-    }
-
-    .admin-panel button {
-      background-color: #00aaff;
-      color: #121212;
-      border: none;
-      padding: 10px 20px;
-      font-weight: bold;
+    #admin-panel input {
+      padding: 10px;
+      font-size: 1rem;
       margin-right: 10px;
-      cursor: pointer;
-      transition: background-color 0.3s;
     }
-
-    .admin-panel button:hover {
+    #admin-panel button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #00aaff;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+    }
+    #admin-panel button:hover {
       background-color: #008ecc;
     }
   </style>
 </head>
 <body>
   <div class="sidebar">
-    <button>Home</button>
-    <button>Settings</button>
-    <button>Messages</button>
-    <button>Reports</button>
-    <div id="admin-button-container" style="display: none;">
-      <button onclick="showAdminPanel()">Admin Panel</button>
+    <button disabled>Welcome, <span id="username-display">...</span></button>
+    <button onclick="alert('Feature not implemented')">Home</button>
+    <button onclick="alert('Feature not implemented')">Reports</button>
+    <button onclick="alert('Feature not implemented')">Settings</button>
+    <button onclick="logout()">Logout</button>
+    <div id="admin-button-wrapper" style="display:none;">
+      <button onclick="toggleAdminPanel()">Admin Panel</button>
     </div>
   </div>
-
   <div class="main">
-    <div class="welcome" id="welcome-text">Welcome, </div>
-
-    <div class="admin-panel" id="admin-panel" style="display: none;">
-      <h3>Admin Panel</h3>
-      <button>Ban User</button>
-      <button>Admin User</button>
+    <h1>Welcome to the ODBIT Dashboard</h1>
+    <div id="admin-panel" style="display:none;">
+      <h2>Admin Panel</h2>
+      <input type="text" id="admin-target" placeholder="Enter SpecID..." />
+      <button onclick="banUser()">Ban User</button>
+      <button onclick="makeAdmin()">Admin User</button>
     </div>
   </div>
 
   <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
     import {
       getFirestore,
       collection,
       query,
       where,
-      getDocs
-    } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+      getDocs,
+      doc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDb8ffuJWKuKk64IuSoHuEQI60B_0OOW3s",
@@ -124,30 +103,45 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const welcomeText = document.getElementById("welcome-text");
-    const adminPanel = document.getElementById("admin-panel");
-    const adminBtnContainer = document.getElementById("admin-button-container");
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    if (!userData) window.location.href = "sign-in.html";
 
-    const storedSpecID = localStorage.getItem("specID");
+    document.getElementById("username-display").textContent = userData.spec_id;
 
-    if (!storedSpecID) {
-      window.location.href = "sign-in.html";
-    } else {
-      welcomeText.textContent = `Welcome, ${storedSpecID}`;
-
-      const q = query(collection(db, "users"), where("spec_id", "==", storedSpecID));
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        const userData = querySnapshot.docs[0].data();
-        if (userData.isAdmin === true) {
-          adminBtnContainer.style.display = "block";
-        }
-      }
+    if (userData.isAdmin) {
+      document.getElementById("admin-button-wrapper").style.display = "block";
     }
 
-    window.showAdminPanel = () => {
-      adminPanel.style.display = "block";
+    window.toggleAdminPanel = function() {
+      const panel = document.getElementById("admin-panel");
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
+    }
+
+    window.logout = function() {
+      localStorage.removeItem("userData");
+      window.location.href = "sign-in.html";
+    }
+
+    window.banUser = async function() {
+      const targetID = document.getElementById("admin-target").value.trim();
+      if (!targetID) return alert("Please enter a SpecID.");
+      const q = query(collection(db, "users"), where("spec_id", "==", targetID));
+      const snap = await getDocs(q);
+      if (snap.empty) return alert("User not found.");
+      const docRef = doc(db, "users", snap.docs[0].id);
+      await updateDoc(docRef, { banned: true });
+      alert(`User ${targetID} has been banned.`);
+    }
+
+    window.makeAdmin = async function() {
+      const targetID = document.getElementById("admin-target").value.trim();
+      if (!targetID) return alert("Please enter a SpecID.");
+      const q = query(collection(db, "users"), where("spec_id", "==", targetID));
+      const snap = await getDocs(q);
+      if (snap.empty) return alert("User not found.");
+      const docRef = doc(db, "users", snap.docs[0].id);
+      await updateDoc(docRef, { isAdmin: true });
+      alert(`User ${targetID} has been granted admin.`);
     }
   </script>
 </body>
