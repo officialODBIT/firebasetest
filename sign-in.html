@@ -279,27 +279,42 @@
     });
 
     banButton.addEventListener('click', async () => {
-      if (!currentUserDocId) {
-        alert("No user selected to ban.");
-        return;
-      }
+  const specToBan = banSpecIDInput.value.trim();
+  if (!specToBan) {
+    alert("Please enter a SpecID to ban.");
+    return;
+  }
 
-      try {
-        const userDocRef = doc(db, "users", currentUserDocId);
-        await updateDoc(userDocRef, {
-          banned: true
-        });
-        alert(`User ${banSpecIDInput.value} has been banned.`);
-        banPopup.style.display = 'none';
-        message.textContent = '';
-        form.reset();
-        form.style.display = 'block'; // make sure form visible after ban
-        bannedScreen.style.display = 'none';
-      } catch (error) {
-        console.error("Error banning user:", error);
-        alert("Failed to ban user. Try again.");
-      }
-    });
+  try {
+    // Query user doc with matching spec_id
+    const q = query(collection(db, "users"), where("spec_id", "==", specToBan));
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      alert(`No user found with SpecID: ${specToBan}`);
+      return;
+    }
+
+    // Assuming spec_id is unique, get the first doc
+    const userDoc = querySnapshot.docs[0];
+    const userDocRef = doc(db, "users", userDoc.id);
+
+    // Update banned field
+    await updateDoc(userDocRef, { banned: true });
+
+    alert(`User ${specToBan} has been banned.`);
+    banPopup.style.display = 'none';
+    message.textContent = '';
+    form.reset();
+    form.style.display = 'block'; // show form after ban
+    bannedScreen.style.display = 'none';
+
+  } catch (error) {
+    console.error("Error banning user:", error);
+    alert("Failed to ban user. Try again.");
+  }
+});
+
   </script>
 </body>
 </html>
