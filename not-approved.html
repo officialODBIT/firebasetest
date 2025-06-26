@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Terminated</title>
+  <title>Not approved.</title>
   <style>
     * {
       margin: 0;
@@ -89,7 +89,7 @@
     const bannedData = JSON.parse(localStorage.getItem('bannedData') || '{}');
 
     if (!banned || !bannedData.spec_id) {
-      window.location.href = 'sign-in.html';
+      window.location.href = 'officialodbit.github.io/firebasetest/sign-in.html';
     }
 
     const reasonsContainer = document.getElementById('reasons');
