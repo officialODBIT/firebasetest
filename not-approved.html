@@ -1,64 +1,109 @@
-<!--<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Not Approved</title>
-<style>
-  body, html {
-    height: 100%;
-    margin: 0; padding: 0;
-    background-color: #121212;
-    color: #eee;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    user-select: none;
-    text-align: center;
-  }
-  h1 {
-    color: #ff0000;
-    font-size: 4rem;
-    margin-bottom: 20px;
-  }
-  p {
-    font-size: 1.5rem;
-    max-width: 400px;
-    margin-bottom: 40px;
-  }
-  a {
-    background-color: #00aaff;
-    color: #121212;
-    text-decoration: none;
-    padding: 12px 30px;
-    font-size: 1.2rem;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    user-select: text;
-  }
-  a:hover {
-    background-color: #008ecc;
-  }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Terminated</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body, html {
+      height: 100%;
+      background-color: #1e1e1e;
+      color: #eee;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      background-color: #2c2c2c;
+      border-radius: 8px;
+      padding: 30px 40px;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    h1 {
+      color: #ff0000;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+    .section {
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+      line-height: 1.5;
+    }
+    .label {
+      font-weight: bold;
+      color: #ccc;
+    }
+    .logout-btn {
+      display: inline-block;
+      background-color: #00aaff;
+      color: #121212;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 4px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .logout-btn:hover {
+      background-color: #008ecc;
+    }
+    .reasons {
+      margin-top: 15px;
+      padding-left: 15px;
+    }
+    .reason-item {
+      margin-bottom: 12px;
+      background: #3a3a3a;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .reason-item strong {
+      color: #00aaff;
+    }
+  </style>
 </head>
 <body>
-  <h1>Access Denied</h1>
-  <p>Your account has been banned from ODBIT.<br />If you believe this is a mistake, please contact support.</p>
-  <a href="sign-in.html">Back to Sign In</a>
+  <div class="container">
+    <h1>Terminated</h1>
+    <div class="section">ODBIT (C) 2025</div>
+    <div class="section"><span class="label">Moderator Note:</span> You have been terminated. Access to ODBIT Dashboard has been temporarily or permanently disabled.</div>
+    <div class="section"><span class="label">Ban Details:</span></div>
+    <div class="reasons" id="reasons">
+      <em>Loading ban information...</em>
+    </div>
+    <div class="section">You may not access your account.</div>
+    <a class="logout-btn" href="/sign-in">Logout</a>
+  </div>
 
   <script>
-    // Simple check: if user is NOT banned (localStorage flag), redirect back
     const banned = localStorage.getItem('bannedUser');
-    if (!banned) {
+    const bannedData = JSON.parse(localStorage.getItem('bannedData') || '{}');
+
+    if (!banned || !bannedData.spec_id) {
       window.location.href = 'sign-in.html';
     }
+
+    const reasonsContainer = document.getElementById('reasons');
+    reasonsContainer.innerHTML = `
+      <div class="reason-item">
+        <div><strong>Reason:</strong> ${bannedData.ban_reason || 'N/A'}</div>
+        <div><strong>Offensive item:</strong> ${bannedData.ban_off || 'N/A'}</div>
+      </div>
+    `;
   </script>
 </body>
-</html>-->
-<!DOCTYPE html>
+</html>
+
+<!--<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -198,4 +243,4 @@
     });
   </script>
 </body>
-</html>
+</html>-->
