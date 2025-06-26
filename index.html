@@ -44,6 +44,7 @@
       padding: 10px;
       font-size: 1rem;
       margin-right: 10px;
+      margin-bottom: 10px;
     }
     #admin-panel button {
       padding: 10px 20px;
@@ -104,11 +105,13 @@
     const db = getFirestore(app);
 
     const userData = JSON.parse(localStorage.getItem("userData"));
-    if (!userData) window.location.href = "sign-in.html";
+    if (!userData || !userData.spec_id) {
+      window.location.href = "sign-in.html";
+    } else {
+      document.getElementById("username-display").textContent = userData.spec_id;
+    }
 
-    document.getElementById("username-display").textContent = userData.spec_id;
-
-    if (userData.isAdmin) {
+    if (userData && userData.isAdmin) {
       document.getElementById("admin-button-wrapper").style.display = "block";
     }
 
