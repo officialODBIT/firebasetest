@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ODBIT | Sign In</title>
+</head>
+<body>
+  <h2>Sign In</h2>
+  <form id="sign-in-form">
+    <label for="specID">SpecID *</label><br />
+    <input type="text" id="specID" name="specID" required /><br />
+    <label for="pin">PIN *</label><br />
+    <input type="password" id="pin" name="pin" required /><br />
+    <button type="submit">Sign In</button>
+  </form>
+
+  <p id="message" style="color: red;"></p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDb8ffuJWKuKk64IuSoHuEQI60B_0OOW3s",
+      authDomain: "odbit-site-database.firebaseapp.com",
+      projectId: "odbit-site-database",
+      storageBucket: "odbit-site-database.firebasestorage.app",
+      messagingSenderId: "673458512809",
+      appId: "1:673458512809:web:eeff2dca57860178481ab8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const form = document.getElementById('sign-in-form');
+    const message = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      message.style.color = 'red';
+      message.textContent = '';
+
+      const specID = document.getElementById('specID').value.trim();
+      const pin = document.getElementById('pin').value.trim();
+
+      if (!specID || !pin) {
+        message.textContent = "SpecID and PIN are required.";
+        return;
+      }
+
+      try {
+        const q = query(
+          collection(db, "users"),
+          where("spec_id", "==", specID),
+          where("pin", "==", pin)
+        );
+
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          // User found
+          message.style.color = 'green';
+          message.textContent = "Sign in successful! Welcome back.";
+          // TODO: Redirect or load your app here
+        } else {
+          message.textContent = "Incorrect SpecID or PIN.";
+        }
+      } catch (error) {
+        console.error("Error signing in: ", error);
+        message.textContent = "Error signing in. Please try again.";
+      }
+    });
+  </script>
+</body>
+</html>
