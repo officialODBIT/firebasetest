@@ -3,33 +3,98 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ODBIT Firebase Test</title>
+  <title>ODBIT | Dashboard</title>
+  <style>
+    /* Reset and base */
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    body, html {
+      height: 100%;
+      background-color: #121212;
+      color: #eee;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    #sidebar {
+      background-color: #1e1e1e;
+      width: 240px;
+      padding: 20px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      user-select: none;
+      border-right: 1px solid #333;
+    }
+    #sidebar button {
+      background: none;
+      border: none;
+      color: #bbb;
+      text-align: left;
+      padding: 12px 24px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    #sidebar button:hover {
+      background-color: #00aaff;
+      color: #121212;
+    }
+
+    /* Main content */
+    #main {
+      flex-grow: 1;
+      padding: 30px 40px;
+    }
+
+    /* Welcome message */
+    #welcome-msg {
+      font-size: 1.6rem;
+      font-weight: 600;
+      margin-bottom: 30px;
+      user-select: text;
+    }
+  </style>
 </head>
 <body>
-  <h1>Welcome to ODBIT Firebase Test Page</h1>
-  <p>Firebase is initialized. You can start adding your Firestore queries here.</p>
+  <nav id="sidebar" aria-label="Sidebar Navigation">
+    <button>Dashboard</button>
+    <button>Profile</button>
+    <button>Settings</button>
+    <button>Notifications</button>
+    <button>Messages</button>
+    <button>Friends</button>
+    <button>Groups</button>
+    <button>Events</button>
+    <button>Reports</button>
+    <button>Help</button>
+    <button>Logout</button>
+  </nav>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-    import { getFirestore } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+  <main id="main">
+    <div id="welcome-msg">Welcome, User</div>
+    <!-- Content goes here -->
+  </main>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDb8ffuJWKuKk64IuSoHuEQI60B_0OOW3s",
-      authDomain: "odbit-site-database.firebaseapp.com",
-      projectId: "odbit-site-database",
-      storageBucket: "odbit-site-database.firebasestorage.app",
-      messagingSenderId: "673458512809",
-      appId: "1:673458512809:web:eeff2dca57860178481ab8"
-    };
+  <script>
+    // Check if user is signed in by checking localStorage
+    const specID = localStorage.getItem('specID');
+    if (!specID) {
+      // No signed-in user, redirect to sign-in page
+      window.location.href = 'sign-in.html';
+    } else {
+      // Display the specID in welcome message
+      document.getElementById('welcome-msg').textContent = `Welcome, ${specID}`;
+    }
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-
-    // Initialize Firestore
-    const db = getFirestore(app);
-
-    console.log("Firebase initialized:", app);
-    console.log("Firestore instance:", db);
+    // Optional: Add logout functionality
+    document.querySelector('#sidebar button:last-child').addEventListener('click', () => {
+      localStorage.removeItem('specID');
+      window.location.href = 'sign-in.html';
+    });
   </script>
 </body>
 </html>
