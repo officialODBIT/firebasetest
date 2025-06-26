@@ -1,5 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Not approved.</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body, html {
+      height: 100%;
+      background-color: #1e1e1e;
+      color: #eee;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      background-color: #2c2c2c;
+      border-radius: 8px;
+      padding: 30px 40px;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    h1 {
+      color: #fff;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+    .section {
+      margin-bottom: 20px;
+      font-size: 1.1rem;
+      line-height: 1.5;
+    }
+    .label {
+      font-weight: bold;
+      color: #ccc;
+    }
+    .logout-btn {
+      display: inline-block;
+      background-color: #00aaff;
+      color: #121212;
+      padding: 10px 20px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 4px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .logout-btn:hover {
+      background-color: #008ecc;
+    }
+    .reasons {
+      margin-top: 15px;
+      padding-left: 15px;
+    }
+    .reason-item {
+      margin-bottom: 12px;
+      background: #3a3a3a;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .reason-item strong {
+      color: #00aaff;
+    }
+    .tos-check {
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+    }
+    .tos-check input {
+      margin-right: 8px;
+    }
+    #reactivate-btn {
+      margin-top: 10px;
+      background-color: #00ff88;
+      color: #121212;
+    }
+    #reactivate-btn:hover {
+      background-color: #00cc66;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 id="ban-title">Banned</h1>
+    <div class="section">ODBIT (C) 2025</div>
+    <div class="section">
+      <span class="label">Moderator note:</span>
+      <span id="mod-note">Loading...</span>
+    </div>
+    <div class="section"><span class="label">Ban Details:</span></div>
+    <div class="reasons" id="reasons">
+      <em>Loading ban information...</em>
+    </div>
+    <div class="section" id="access-msg">You may not access your account.</div>
+    <div id="tos-section" style="display:none;">
+      <div class="tos-check">
+        <input type="checkbox" id="tos-check" />
+        <label for="tos-check">I will follow ODBIT service TOS.</label>
+      </div>
+      <button id="reactivate-btn" class="logout-btn" onclick="reactivate()">Reactivate Account</button>
+    </div>
+    <button onclick="logout()" class="logout-btn">Logout</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      getDocs,
+      doc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDb8ffuJWKuKk64IuSoHuEQI60B_0OOW3s",
+      authDomain: "odbit-site-database.firebaseapp.com",
+      projectId: "odbit-site-database",
+      storageBucket: "odbit-site-database.firebasestorage.app",
+      messagingSenderId: "673458512809",
+      appId: "1:673458512809:web:eeff2dca57860178481ab8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const banned = localStorage.getItem('bannedUser');
+    const bannedData = JSON.parse(localStorage.getItem('bannedData') || '{}');
+
+    if (!banned || !bannedData.spec_id) {
+      window.location.href = 'officialodbit.github.io/firebasetest/sign-in.html';
+    }
+
+    window.logout = function () {
+      localStorage.removeItem("userData");
+      window.location.href = "sign-in.html";
+    };
+
+    document.getElementById('mod-note').textContent = bannedData.mod_note || 'N/A';
+
+    const reasonsContainer = document.getElementById('reasons');
+    reasonsContainer.innerHTML = `
+      <div class="reason-item">
+        <div><strong>Reason:</strong> ${bannedData.ban_reason || 'N/A'}</div>
+        <div><strong>Offensive item:</strong> ${bannedData.ban_off || 'N/A'}</div>
+      </div>
+    `;
+
+    const banTitle = document.getElementById('ban-title');
+    const tosSection = document.getElementById('tos-section');
+    const accessMsg = document.getElementById('access-msg');
+
+    const duration = bannedData.ban_dur ?? -1;
+    banTitle.textContent = `Banned for ${duration} day${duration !== 1 ? 's' : ''}`;
+
+    if (duration === 0) {
+      accessMsg.textContent = "You may access your account again after agreeing to the Terms of Service.";
+      tosSection.style.display = "block";
+    }
+
+    window.reactivate = async function () {
+      const check = document.getElementById("tos-check").checked;
+      if (!check) {
+        return alert("Please agree to the Terms of Service first.");
+      }
+
+      try {
+        const q = query(collection(db, "users"), where("spec_id", "==", bannedData.spec_id));
+        const snap = await getDocs(q);
+        if (snap.empty) return alert("User not found.");
+
+        const docRef = doc(db, "users", snap.docs[0].id);
+        await updateDoc(docRef, { banned: false });
+
+        localStorage.removeItem("bannedUser");
+        localStorage.removeItem("bannedData");
+        alert("Account reactivated. Redirecting...");
+        window.location.href = "sign-in.html";
+      } catch (error) {
+        console.error("Failed to reactivate:", error);
+        alert("An error occurred while trying to reactivate your account.");
+      }
+    };
+  </script>
+</body>
+</html>
+
+<!--<!DOCTYPE html>
+<html lang="en">
 <script src="n-aVerscontrol.js"></script>
 <head>
   <meta charset="UTF-8" />
@@ -163,7 +360,7 @@
     };
   </script>
 </body>
-</html>
+</html>-->
 
 <!--<!DOCTYPE html>
 <html lang="en">
