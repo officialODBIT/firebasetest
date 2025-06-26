@@ -147,7 +147,8 @@
           spec_id: specID,
           ban_reason: user.ban_reason || "No reason provided",
           ban_off: user.ban_off || "Unknown",
-          mod_note: user.mod_note
+          mod_note: user.mod_note,
+          ban_dur: user.ban_dur
         }));
         window.location.href = "not-approved.html";
       } else {
