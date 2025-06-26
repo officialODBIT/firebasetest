@@ -40,6 +40,187 @@
     #admin-panel {
       margin-top: 30px;
     }
+    #admin-panel input, #admin-panel select {
+      padding: 10px;
+      font-size: 1rem;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      width: 250px;
+      background-color: #2c2c2c;
+      color: #fff;
+      border: 1px solid #444;
+    }
+    #admin-panel button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #00aaff;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+    }
+    #admin-panel button:hover {
+      background-color: #008ecc;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <button disabled>Welcome, <span id="username-display">...</span></button>
+    <button onclick="alert('Feature not implemented')">Home</button>
+    <button onclick="alert('Feature not implemented')">Reports</button>
+    <button onclick="alert('Feature not implemented')">Settings</button>
+    <button onclick="logout()">Logout</button>
+    <div id="admin-button-wrapper" style="display:none;">
+      <button onclick="toggleAdminPanel()">Admin Panel</button>
+    </div>
+  </div>
+  <div class="main">
+    <h1>welcome, {user}</h1>
+    <div id="admin-panel" style="display:none;">
+      <h2>Admin Panel</h2>
+      <input type="text" id="admin-target" placeholder="Enter SpecID..." />
+      <select id="ban-reason">
+        <option value="">-- Select Ban Reason --</option>
+        <option value="Inappropriate Content">Inappropriate Content</option>
+        <option value="Sexual Content">Sexual Content</option>
+        <option value="Profanity">Profanity</option>
+        <option value="Toxicity and Harassment">Toxicity and Harassment</option>
+        <option value="Blackmail">Blackmail</option>
+        <option value="Extortion">Extortion</option>
+        <option value="Other">Other</option>
+        <option value="Test">Test</option>
+      </select>
+      <input type="text" id="ban-offense" placeholder="Ban Offense..." />
+      <br />
+      <button onclick="banUser()">Ban User</button>
+      <button onclick="makeAdmin()">Admin User</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      getDocs,
+      doc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDb8ffuJWKuKk64IuSoHuEQI60B_0OOW3s",
+      authDomain: "odbit-site-database.firebaseapp.com",
+      projectId: "odbit-site-database",
+      storageBucket: "odbit-site-database.firebasestorage.app",
+      messagingSenderId: "673458512809",
+      appId: "1:673458512809:web:eeff2dca57860178481ab8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    if (!userData || !userData.spec_id) {
+      window.location.href = "sign-in.html";
+    } else {
+      document.getElementById("username-display").textContent = userData.spec_id;
+    }
+
+    if (userData && userData.isAdmin) {
+      document.getElementById("admin-button-wrapper").style.display = "block";
+    }
+
+    window.toggleAdminPanel = function() {
+      const panel = document.getElementById("admin-panel");
+      panel.style.display = panel.style.display === "none" ? "block" : "none";
+    }
+
+    window.logout = function() {
+      localStorage.removeItem("userData");
+      window.location.href = "sign-in.html";
+    }
+
+    window.banUser = async function() {
+      const targetID = document.getElementById("admin-target").value.trim();
+      const reason = document.getElementById("ban-reason").value;
+      const offense = document.getElementById("ban-offense").value.trim();
+
+      if (!targetID || !reason || !offense) {
+        return alert("Please fill out all fields.");
+      }
+
+      const q = query(collection(db, "users"), where("spec_id", "==", targetID));
+      const snap = await getDocs(q);
+      if (snap.empty) return alert("User not found.");
+      
+      const docRef = doc(db, "users", snap.docs[0].id);
+      await updateDoc(docRef, {
+        banned: true,
+        ban_reason: reason,
+        ban_off: offense
+      });
+
+      alert(`User ${targetID} has been banned for "${reason}".`);
+    }
+
+    window.makeAdmin = async function() {
+      const targetID = document.getElementById("admin-target").value.trim();
+      if (!targetID) return alert("Please enter a SpecID.");
+      const q = query(collection(db, "users"), where("spec_id", "==", targetID));
+      const snap = await getDocs(q);
+      if (snap.empty) return alert("User not found.");
+      const docRef = doc(db, "users", snap.docs[0].id);
+      await updateDoc(docRef, { isAdmin: true });
+      alert(`User ${targetID} has been granted admin.`);
+    }
+  </script>
+</body>
+</html>
+
+<!--<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dash</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body { display: flex; height: 100vh; background-color: #1e1e1e; color: #fff; }
+    .sidebar {
+      width: 250px;
+      background-color: #111;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      border-right: 1px solid #333;
+    }
+    .sidebar button {
+      background-color: #222;
+      border: none;
+      padding: 12px;
+      color: #fff;
+      text-align: left;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .sidebar button:hover {
+      background-color: #333;
+    }
+    .main {
+      flex: 1;
+      padding: 30px;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+    #admin-panel {
+      margin-top: 30px;
+    }
     #admin-panel input {
       padding: 10px;
       font-size: 1rem;
@@ -148,4 +329,4 @@
     }
   </script>
 </body>
-</html>
+</html>-->
