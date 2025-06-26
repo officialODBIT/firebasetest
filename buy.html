@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ODBIT | Buy Currency</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body { display: flex; height: 100vh; background-color: #1e1e1e; color: #fff; }
+    .sidebar {
+      width: 250px;
+      background-color: #111;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      border-right: 1px solid #333;
+    }
+    .sidebar button {
+      background-color: #222;
+      border: none;
+      padding: 12px;
+      color: #fff;
+      text-align: left;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .sidebar button:hover {
+      background-color: #333;
+    }
+    .main {
+      flex: 1;
+      padding: 30px;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+    label, input, button {
+      display: block;
+      margin-bottom: 15px;
+      font-size: 1rem;
+    }
+    input[type="number"] {
+      width: 150px;
+      padding: 10px;
+      background-color: #2a2a2a;
+      border: 1px solid #444;
+      color: #eee;
+      outline-offset: 2px;
+    }
+    input[type="number"]:focus {
+      border-color: #00aaff;
+      outline: none;
+      box-shadow: 0 0 6px #00aaff;
+    }
+    button.buy-btn {
+      background-color: #00aaff;
+      border: none;
+      color: #121212;
+      padding: 12px 25px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.25s ease;
+    }
+    button.buy-btn:hover {
+      background-color: #008ecc;
+    }
+    #popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 20vh;
+      box-sizing: border-box;
+      z-index: 9999;
+    }
+    #popup p {
+      font-size: 1.5rem;
+      margin-bottom: 25px;
+    }
+    #popup button {
+      background-color: #00aaff;
+      border: none;
+      color: #121212;
+      padding: 10px 30px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    #popup button:hover {
+      background-color: #008ecc;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <button disabled>Welcome, <span id="username-display">...</span></button>
+    <button onclick="alert('Feature not implemented')">Home</button>
+    <button onclick="alert('Feature not implemented')">Reports</button>
+    <button onclick="alert('Feature not implemented')">Settings</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <div class="main">
+    <h1>Buy Credits with Pines</h1>
+    <p>Your Pines: <span id="pines-display">...</span></p>
+    <label for="credit-amount">Credits to buy:</label>
+    <input type="number" id="credit-amount" min="1" placeholder="Enter amount" />
+    <button class="buy-btn" id="buy-button">Buy</button>
+  </div>
+
+  <div id="popup">
+    <p id="popup-message"></p>
+    <button onclick="closePopup()">Close</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      getDocs,
+      doc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDb8ffuJWKuKk64IuSoHuEQI60B_0OOW3s",
+      authDomain: "odbit-site-database.firebaseapp.com",
+      projectId: "odbit-site-database",
+      storageBucket: "odbit-site-database.firebasestorage.app",
+      messagingSenderId: "673458512809",
+      appId: "1:673458512809:web:eeff2dca57860178481ab8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    if (!userData || !userData.spec_id) {
+      window.location.href = "sign-in.html";
+    } else {
+      document.getElementById("username-display").textContent = userData.spec_id;
+      loadUserData();
+    }
+
+    window.logout = function() {
+      localStorage.removeItem("userData");
+      window.location.href = "sign-in.html";
+    }
+
+    async function loadUserData() {
+      const q = query(collection(db, "users"), where("spec_id", "==", userData.spec_id));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        alert("User data not found.");
+        return;
+      }
+      const userDoc = snap.docs[0];
+      const data = userDoc.data();
+      window.userDocId = userDoc.id;
+      window.userPines = data.pines ?? 0;
+      window.userCredits = data.crncy ?? 0;
+
+      document.getElementById("pines-display").textContent = window.userPines;
+    }
+
+    document.getElementById("buy-button").addEventListener("click", async () => {
+      const creditsToBuy = parseInt(document.getElementById("credit-amount").value, 10);
+      if (!creditsToBuy || creditsToBuy < 1) {
+        showPopup("Please enter a valid number of credits.");
+        return;
+      }
+      const costInPines = creditsToBuy * 100;
+
+      if (window.userPines < costInPines) {
+        const needed = costInPines - window.userPines;
+        showPopup(`You need ${needed} more pines to buy ${creditsToBuy} credits.`);
+        return;
+      }
+
+      try {
+        const userDocRef = doc(db, "users", window.userDocId);
+        await updateDoc(userDocRef, {
+          pines: window.userPines - costInPines,
+          crncy: (window.userCredits ?? 0) + creditsToBuy
+        });
+        // Update local state and display
+        window.userPines -= costInPines;
+        window.userCredits += creditsToBuy;
+        document.getElementById("pines-display").textContent = window.userPines;
+        document.getElementById("credit-amount").value = "";
+        showPopup(`Successfully purchased ${creditsToBuy} credits!`);
+      } catch (e) {
+        console.error(e);
+        showPopup("Error purchasing credits. Please try again.");
+      }
+    });
+
+    function showPopup(msg) {
+      document.getElementById("popup-message").textContent = msg;
+      document.getElementById("popup").style.display = "block";
+    }
+
+    window.closePopup = function() {
+      document.getElementById("popup").style.display = "none";
+    }
+  </script>
+</body>
+</html>
