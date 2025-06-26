@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ODBIT | Sign Up</title>
+</head>
+<body>
+  <h2>Sign Up</h2>
+  <form id="sign-up-form">
+    <label for="specID">SpecID *</label><br />
+    <input type="text" id="specID" name="specID" required /><br />
+    <label for="pin">PIN *</label><br />
+    <input type="password" id="pin" name="pin" required /><br />
+    <button type="submit">Sign Up</button>
+  </form>
+
+  <p id="message" style="color: red;"></p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      query,
+      where,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDb8ffuJWKuKk64IuSoHuEQI60B_0OOW3s",
+      authDomain: "odbit-site-database.firebaseapp.com",
+      projectId: "odbit-site-database",
+      storageBucket: "odbit-site-database.firebasestorage.app",
+      messagingSenderId: "673458512809",
+      appId: "1:673458512809:web:eeff2dca57860178481ab8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const form = document.getElementById('sign-up-form');
+    const message = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      message.style.color = 'red';
+      message.textContent = '';
+
+      const specID = document.getElementById('specID').value.trim();
+      const pin = document.getElementById('pin').value.trim();
+
+      if (!specID || !pin) {
+        message.textContent = "SpecID and PIN are required.";
+        return;
+      }
+
+      try {
+        // Check if SpecID already exists
+        const q = query(collection(db, "users"), where("spec_id", "==", specID));
+        const querySnapshot = await getDocs(q);
+        if (!querySnapshot.empty) {
+          message.textContent = "SpecID already exists. Please choose a different one.";
+          return;
+        }
+
+        // Add new user doc
+        await addDoc(collection(db, "users"), {
+          spec_id: specID,
+          pin: pin,
+          banned: false // example extra field, add whatever you want
+        });
+
+        message.style.color = 'green';
+        message.textContent = "Sign up successful! You can now sign in.";
+        form.reset();
+      } catch (error) {
+        console.error("Error adding document: ", error);
+        message.textContent = "Error signing up. Please try again.";
+      }
+    });
+  </script>
+</body>
+</html>
