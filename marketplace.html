@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ODBIT | Shop</title>
+  <style>
+    * {
+      box-sizing: border-box; margin: 0; padding: 0;
+      font-family: Arial, sans-serif;
+      color: #fff;
+    }
+    body {
+      display: flex;
+      height: 100vh;
+      background-color: #1e1e1e;
+    }
+    .sidebar {
+      width: 250px;
+      background-color: #111;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      border-right: 1px solid #333;
+    }
+    .sidebar button {
+      background-color: #222;
+      border: none;
+      padding: 12px;
+      color: #fff;
+      text-align: left;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .sidebar button:hover {
+      background-color: #333;
+    }
+    .sidebar .currency {
+      font-weight: bold;
+      font-size: 1.2rem;
+      user-select: none;
+    }
+    .main {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill,minmax(180px,1fr));
+      gap: 20px;
+    }
+    .item-card {
+      background: #222;
+      padding: 15px;
+      border: 1px solid #444;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-radius: 0; /* no rounding to match style */
+    }
+    .item-card img {
+      max-width: 100%;
+      height: 100px;
+      object-fit: contain;
+      margin-bottom: 10px;
+    }
+    .item-name {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+      text-align: center;
+      user-select: text;
+    }
+    .item-price {
+      font-size: 1rem;
+      margin-bottom: 12px;
+      user-select: none;
+    }
+    .item-card button {
+      background-color: #00aaff;
+      border: none;
+      padding: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #121212;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+      width: 100%;
+    }
+    .item-card button:hover {
+      background-color: #008ecc;
+    }
+
+    /* Popup for insufficient currency */
+    #insufficient-popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      font-family: Arial, sans-serif;
+      z-index: 10000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #insufficient-popup .popup-content {
+      background: #222;
+      padding: 30px;
+      border: 1px solid #444;
+      max-width: 400px;
+      text-align: center;
+    }
+    #insufficient-popup p {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+    }
+    #insufficient-popup button {
+      background-color: #00aaff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #121212;
+      cursor: pointer;
+    }
+    #insufficient-popup button:hover {
+      background-color: #008ecc;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <button disabled>Welcome, <span id="username-display">...</span></button>
+    <div class="currency">Currency: <span id="currency-display">0</span></div>
+    <button onclick="alert('Feature not implemented')">Home</button>
+    <button onclick="alert('Feature not implemented')">Reports</button>
+    <button onclick="alert('Feature not implemented')">Settings</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+  <div class="main">
+    <h1>Shop</h1>
+    <div class="items-grid" id="items-grid">
+      <!-- Items inserted here dynamically -->
+    </div>
+  </div>
+
+  <div id="insufficient-popup">
+    <div class="popup-content">
+      <p id="insufficient-message"></p>
+      <button onclick="closePopup()">Close</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      getDocs,
+      doc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDb8ffuJWKuKk64IuSoHuEQI60B_0OOW3s",
+      authDomain: "odbit-site-database.firebaseapp.com",
+      projectId: "odbit-site-database",
+      storageBucket: "odbit-site-database.firebasestorage.app",
+      messagingSenderId: "673458512809",
+      appId: "1:673458512809:web:eeff2dca57860178481ab8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    if (!userData || !userData.spec_id) {
+      window.location.href = "sign-in.html";
+    } else {
+      document.getElementById("username-display").textContent = userData.spec_id;
+    }
+
+    // Hardcoded shop items
+    const items = [
+      { id: "item1", name: "Speed Boost", price: 150, image: "https://i.imgur.com/4AiXzf8.png" },
+      { id: "item2", name: "VIP Pass", price: 500, image: "https://i.imgur.com/9oT8zxH.png" },
+      { id: "item3", name: "Extra Storage", price: 300, image: "https://i.imgur.com/fVqGIqR.png" },
+      { id: "item4", name: "Special Hat", price: 250, image: "https://i.imgur.com/0y8Ftya.png" }
+    ];
+
+    const itemsGrid = document.getElementById("items-grid");
+    const currencyDisplay = document.getElementById("currency-display");
+    const popup = document.getElementById("insufficient-popup");
+    const popupMessage = document.getElementById("insufficient-message");
+
+    let userDocId = null;
+    let userCurrency = 0;
+
+    // Load user currency and doc ID from Firestore
+    async function loadUserData() {
+      const q = query(collection(db, "users"), where("spec_id", "==", userData.spec_id));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        alert("User data not found!");
+        logout();
+        return;
+      }
+      const userDoc = snap.docs[0];
+      userDocId = userDoc.id;
+      userCurrency = userDoc.data().crncy || 0;
+      currencyDisplay.textContent = userCurrency;
+    }
+
+    // Render items
+    function renderItems() {
+      itemsGrid.innerHTML = "";
+      items.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "item-card";
+
+        const img = document.createElement("img");
+        img.src = item.image;
+        img.alt = item.name;
+
+        const name = document.createElement("div");
+        name.className = "item-name";
+        name.textContent = item.name;
+
+        const price = document.createElement("div");
+        price.className = "item-price";
+        price.textContent = `Price: ${item.price}`;
+
+        const btn = document.createElement("button");
+        btn.textContent = "Buy";
+        btn.onclick = () => buyItem(item);
+
+        card.appendChild(img);
+        card.appendChild(name);
+        card.appendChild(price);
+        card.appendChild(btn);
+
+        itemsGrid.appendChild(card);
+      });
+    }
+
+    // Buy item logic
+    async function buyItem(item) {
+      if (userCurrency >= item.price) {
+        try {
+          const docRef = doc(db, "users", userDocId);
+          const newCurrency = userCurrency - item.price;
+          await updateDoc(docRef, { crncy: newCurrency });
+          userCurrency = newCurrency;
+          currencyDisplay.textContent = userCurrency;
+          alert(`You bought ${item.name}!`);
+        } catch (err) {
+          alert("Error buying item, please try again.");
+          console.error(err);
+        }
+      } else {
+        const needed = item.price - userCurrency;
+        popupMessage.textContent = `You need ${needed} more currency to buy this.`;
+        popup.style.display = "flex";
+      }
+    }
+
+    function closePopup() {
+      popup.style.display = "none";
+    }
+
+    function logout() {
+      localStorage.removeItem("userData");
+      window.location.href = "sign-in.html";
+    }
+
+    window.closePopup = closePopup;
+    window.logout = logout;
+
+    loadUserData();
+    renderItems();
+  </script>
+</body>
+</html>
