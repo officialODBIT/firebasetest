@@ -139,24 +139,22 @@
         const snapshot = await getDocs(q);
 
         if (!snapshot.empty) {
-          const user = snapshot.docs[0].data();
-          if (user.banned) {
-            window.location.href = "not-approved.html";
-          } else {
-            localStorage.setItem("userData", JSON.stringify({
-  spec_id: specID,
-  isAdmin: user.isAdmin || false
-}));
+  const user = snapshot.docs[0].data();
+  if (user.banned) {
+    localStorage.setItem('bannedUser', 'true');
+    window.location.href = "not-approved.html";
+  } else {
+    localStorage.removeItem('bannedUser');
+    localStorage.setItem("userData", JSON.stringify({
+      spec_id: specID,
+      isAdmin: user.isAdmin || false
+    }));
+    window.location.href = "index.html";
+  }
+} else {
+  message.textContent = "Invalid SpecID or PIN.";
+}
 
-            window.location.href = "index.html";
-          }
-        } else {
-          message.textContent = "Invalid SpecID or PIN.";
-        }
-      } catch (err) {
-        console.error(err);
-        message.textContent = "Error signing in.";
-      }
     });
   </script>
 </body>
