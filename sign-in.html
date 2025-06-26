@@ -128,6 +128,7 @@
     message.textContent = "All fields are required.";
     return;
   }
+      
 
   try {
     const q = query(
@@ -142,6 +143,11 @@
       const user = snapshot.docs[0].data();
       if (user.banned) {
         localStorage.setItem('bannedUser', 'true');
+        localStorage.setItem('bannedData', JSON.stringify({
+          spec_id: specID,
+          ban_reason: user.ban_reason || "No reason provided",
+          ban_off: user.ban_off || "Unknown"
+        }));
         window.location.href = "not-approved.html";
       } else {
         localStorage.removeItem('bannedUser');
