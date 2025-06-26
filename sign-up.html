@@ -1,22 +1,49 @@
+<!-- Updated sign-up.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ODBIT | Sign Up</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    html, body {
+      height: 100%; background-color: #121212; color: #eee;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #form-container {
+      background-color: #1e1e1e; width: 380px; padding: 30px 40px;
+      border: 1px solid #333; display: flex; flex-direction: column; gap: 20px;
+    }
+    h2 { text-align: center; font-size: 2rem; color: #ccc; }
+    label { font-size: 1rem; color: #bbb; }
+    input {
+      width: 100%; padding: 12px 10px; background-color: #2a2a2a;
+      border: 1px solid #444; color: #eee; font-size: 1rem;
+    }
+    input:focus {
+      border-color: #00aaff; outline: none; box-shadow: 0 0 6px #00aaff;
+    }
+    button {
+      background-color: #00aaff; border: none; padding: 14px 0;
+      font-size: 1.1rem; font-weight: 600; color: #121212; cursor: pointer;
+    }
+    button:hover { background-color: #008ecc; }
+    #message { text-align: center; font-size: 1rem; color: #ff5555; }
+  </style>
 </head>
 <body>
-  <h2>Sign Up</h2>
-  <form id="sign-up-form">
-    <label for="specID">SpecID *</label><br />
-    <input type="text" id="specID" name="specID" required /><br />
-    <label for="pin">PIN *</label><br />
-    <input type="password" id="pin" name="pin" required /><br />
-    <button type="submit">Sign Up</button>
-  </form>
-
-  <p id="message" style="color: red;"></p>
-
+  <div id="form-container">
+    <h2>Sign Up</h2>
+    <form id="sign-up-form">
+      <label for="specID">SpecID *</label>
+      <input type="text" id="specID" name="specID" required />
+      <label for="pin">PIN *</label>
+      <input type="password" id="pin" name="pin" required />
+      <button type="submit">Sign Up</button>
+    </form>
+    <p id="message"></p>
+  </div>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
     import {
@@ -57,29 +84,31 @@
       }
 
       try {
-        // Check if SpecID already exists
         const q = query(collection(db, "users"), where("spec_id", "==", specID));
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
-          message.textContent = "SpecID already exists. Please choose a different one.";
+        const snapshot = await getDocs(q);
+
+        if (!snapshot.empty) {
+          message.textContent = "SpecID already exists.";
           return;
         }
 
-        // Add new user doc
         await addDoc(collection(db, "users"), {
           spec_id: specID,
           pin: pin,
-          banned: false // example extra field, add whatever you want
+          banned: false,
+          isAdmin: false
         });
 
         message.style.color = 'green';
         message.textContent = "Sign up successful! You can now sign in.";
         form.reset();
-      } catch (error) {
-        console.error("Error adding document: ", error);
-        message.textContent = "Error signing up. Please try again.";
+      } catch (err) {
+        console.error("Error:", err);
+        message.textContent = "Error signing up. Try again.";
       }
     });
   </script>
 </body>
 </html>
+
+<!-- index.html will follow with admin panel logic -->
