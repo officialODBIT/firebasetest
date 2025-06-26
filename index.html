@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ODBIT Firebase Test</title>
+</head>
+<body>
+  <h1>Welcome to ODBIT Firebase Test Page</h1>
+  <p>Firebase is initialized. You can start adding your Firestore queries here.</p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDb8ffuJWKuKk64IuSoHuEQI60B_0OOW3s",
+      authDomain: "odbit-site-database.firebaseapp.com",
+      projectId: "odbit-site-database",
+      storageBucket: "odbit-site-database.firebasestorage.app",
+      messagingSenderId: "673458512809",
+      appId: "1:673458512809:web:eeff2dca57860178481ab8"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+
+    // Initialize Firestore
+    const db = getFirestore(app);
+
+    console.log("Firebase initialized:", app);
+    console.log("Firestore instance:", db);
+  </script>
+</body>
+</html>
