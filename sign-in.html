@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!--<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -75,6 +75,179 @@
       } catch (error) {
         console.error("Error signing in: ", error);
         message.textContent = "Error signing in. Please try again.";
+      }
+    });
+  </script>
+</body>
+</html>-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ODBIT | Sign In</title>
+  <style>
+    body, html {
+      margin: 0; padding: 0; font-family: Arial, sans-serif;
+    }
+    #ban-popup {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      font-size: 5rem;
+      text-align: center;
+      z-index: 9999;
+      padding-top: 15vh;
+      box-sizing: border-box;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      display: flex;
+      gap: 30px;
+    }
+    #ban-popup input {
+      font-size: 2rem;
+      padding: 10px;
+      width: 400px;
+      max-width: 90vw;
+      text-align: center;
+      border-radius: 5px;
+      border: none;
+    }
+    #ban-popup button {
+      font-size: 2rem;
+      padding: 10px 40px;
+      background-color: #ff0000;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #ban-popup button:hover {
+      background-color: #cc0000;
+    }
+    #message {
+      color: red;
+      margin-top: 1rem;
+      font-size: 1.2rem;
+    }
+  </style>
+</head>
+<body>
+  <h2>Sign In</h2>
+  <form id="sign-in-form">
+    <label for="specID">SpecID *</label><br />
+    <input type="text" id="specID" name="specID" required /><br />
+    <label for="pin">PIN *</label><br />
+    <input type="password" id="pin" name="pin" required /><br />
+    <button type="submit">Sign In</button>
+  </form>
+
+  <p id="message"></p>
+
+  <!-- Ban Popup -->
+  <div id="ban-popup">
+    <div>BAN</div>
+    <input type="text" id="ban-specid" readonly />
+    <button id="ban-button">Ban User</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      getDocs,
+      doc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDb8ffuJWKuKk64IuSoHuEQI60B_0OOW3s",
+      authDomain: "odbit-site-database.firebaseapp.com",
+      projectId: "odbit-site-database",
+      storageBucket: "odbit-site-database.firebasestorage.app",
+      messagingSenderId: "673458512809",
+      appId: "1:673458512809:web:eeff2dca57860178481ab8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const form = document.getElementById('sign-in-form');
+    const message = document.getElementById('message');
+    const banPopup = document.getElementById('ban-popup');
+    const banSpecIDInput = document.getElementById('ban-specid');
+    const banButton = document.getElementById('ban-button');
+
+    // Store current signed-in user's doc ID for banning
+    let currentUserDocId = null;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      message.style.color = 'red';
+      message.textContent = '';
+
+      const specID = document.getElementById('specID').value.trim();
+      const pin = document.getElementById('pin').value.trim();
+
+      if (!specID || !pin) {
+        message.textContent = "SpecID and PIN are required.";
+        return;
+      }
+
+      try {
+        const q = query(
+          collection(db, "users"),
+          where("spec_id", "==", specID),
+          where("pin", "==", pin)
+        );
+
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          // User found
+          const userDoc = querySnapshot.docs[0];
+          currentUserDocId = userDoc.id;
+
+          message.style.color = 'green';
+          message.textContent = "Sign in successful!";
+
+          // Show Ban popup and fill SpecID
+          banSpecIDInput.value = specID;
+          banPopup.style.display = 'flex';
+        } else {
+          message.textContent = "Incorrect SpecID or PIN.";
+        }
+      } catch (error) {
+        console.error("Error signing in: ", error);
+        message.textContent = "Error signing in. Please try again.";
+      }
+    });
+
+    banButton.addEventListener('click', async () => {
+      if (!currentUserDocId) {
+        alert("No user selected to ban.");
+        return;
+      }
+
+      try {
+        const userDocRef = doc(db, "users", currentUserDocId);
+        await updateDoc(userDocRef, {
+          banned: true
+        });
+        alert(`User ${banSpecIDInput.value} has been banned.`);
+        banPopup.style.display = 'none';
+        message.textContent = '';
+        form.reset();
+      } catch (error) {
+        console.error("Error banning user:", error);
+        alert("Failed to ban user. Try again.");
       }
     });
   </script>
