@@ -146,7 +146,8 @@
         localStorage.setItem('bannedData', JSON.stringify({
           spec_id: specID,
           ban_reason: user.ban_reason || "No reason provided",
-          ban_off: user.ban_off || "Unknown"
+          ban_off: user.ban_off || "Unknown",
+          mod_note: user.mod_note
         }));
         window.location.href = "not-approved.html";
       } else {
