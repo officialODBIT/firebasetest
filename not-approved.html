@@ -76,7 +76,10 @@
   <div class="container">
     <h1>Terminated</h1>
     <div class="section">ODBIT (C) 2025</div>
-    <div class="section"><span class="label">Moderator Note:</span> You have been terminated. Access to ODBIT Dashboard has been temporarily or permanently disabled.</div>
+    <div class="section">
+      <span class="label">Mod note:</span>
+      <span id="mod-note">Loading...</span>
+    </div>
     <div class="section"><span class="label">Ban Details:</span></div>
     <div class="reasons" id="reasons">
       <em>Loading ban information...</em>
@@ -92,10 +95,14 @@
     if (!banned || !bannedData.spec_id) {
       window.location.href = 'officialodbit.github.io/firebasetest/sign-in.html';
     }
+
     window.logout = function() {
       localStorage.removeItem("userData");
       window.location.href = "sign-in.html";
     }
+
+    // Insert mod note and ban data
+    document.getElementById('mod-note').textContent = bannedData.mod_note || 'N/A';
 
     const reasonsContainer = document.getElementById('reasons');
     reasonsContainer.innerHTML = `
@@ -107,15 +114,13 @@
   </script>
 </body>
 </html>
-
 <!--<!DOCTYPE html>
 <html lang="en">
+<script src="n-aVerscontrol.js"></script>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Terminated</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <title>Not approved.</title>
   <style>
     * {
       margin: 0;
@@ -188,64 +193,33 @@
     <h1>Terminated</h1>
     <div class="section">ODBIT (C) 2025</div>
     <div class="section"><span class="label">Moderator Note:</span> You have been terminated. Access to ODBIT Dashboard has been temporarily or permanently disabled.</div>
-    <div class="section"><span class="label">Firebase Collection:</span> Reasons</div>
+    <div class="section"><span class="label">Ban Details:</span></div>
     <div class="reasons" id="reasons">
-      <em>Loading reasons...</em>
+      <em>Loading ban information...</em>
     </div>
     <div class="section">You may not access your account.</div>
-    <a class="logout-btn" href="/sign-in">Logout</a>
+    <button onclick="logout()" class="logout-btn">Logout</button>
   </div>
-  <script>
-    // Simple check: if user is NOT banned (localStorage flag), redirect back
-    const banned = localStorage.getItem('bannedUser');
-    if (!banned) {
-      window.location.href = 'firebasetest/sign-in.html';
-    }
-  </script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      query,
-      where,
-      getDocs
-    } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
-  
-    const firebaseConfig = {
-      apiKey: "AIzaSyDb8ffuJWKuKk64IuSoHuEQI60B_0OOW3s",
-      authDomain: "odbit-site-database.firebaseapp.com",
-      projectId: "odbit-site-database",
-      storageBucket: "odbit-site-database.firebasestorage.app",
-      messagingSenderId: "673458512809",
-      appId: "1:673458512809:web:eeff2dca57860178481ab8"
-    };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+  <script>
+    const banned = localStorage.getItem('bannedUser');
+    const bannedData = JSON.parse(localStorage.getItem('bannedData') || '{}');
+
+    if (!banned || !bannedData.spec_id) {
+      window.location.href = 'officialodbit.github.io/firebasetest/sign-in.html';
+    }
+    window.logout = function() {
+      localStorage.removeItem("userData");
+      window.location.href = "sign-in.html";
+    }
 
     const reasonsContainer = document.getElementById('reasons');
-
-    db.collection("Reasons").get().then((querySnapshot) => {
-      reasonsContainer.innerHTML = '';
-      if (querySnapshot.empty) {
-        reasonsContainer.innerHTML = '<em>No reasons listed.</em>';
-        return;
-      }
-
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        const item = document.createElement('div');
-        item.className = 'reason-item';
-        item.innerHTML = `
-          <div><strong>Reason:</strong> ${data.Reason || 'N/A'}</div>
-          <div><strong>Offensive item:</strong> ${data['Offensive item'] || 'N/A'}</div>
-        `;
-        reasonsContainer.appendChild(item);
-      });
-    }).catch((error) => {
-      reasonsContainer.innerHTML = `<span style="color:red;">Error loading reasons: ${error.message}</span>`;
-    });
+    reasonsContainer.innerHTML = `
+      <div class="reason-item">
+        <div><strong>Reason:</strong> ${bannedData.ban_reason || 'N/A'}</div>
+        <div><strong>Offensive item:</strong> ${bannedData.ban_off || 'N/A'}</div>
+      </div>
+    `;
   </script>
 </body>
 </html>-->
