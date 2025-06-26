@@ -1,2 +1,3 @@
 const _VERSION = 1
-console.log("loaded. v = " + _VERSION)
+const _VERS2 = .01
+console.log("loaded. v = " + _VERSION + _VERS2)
