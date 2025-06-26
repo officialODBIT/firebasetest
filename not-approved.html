@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Not Approved</title>
+<style>
+  body, html {
+    height: 100%;
+    margin: 0; padding: 0;
+    background-color: #121212;
+    color: #eee;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    text-align: center;
+  }
+  h1 {
+    color: #ff0000;
+    font-size: 4rem;
+    margin-bottom: 20px;
+  }
+  p {
+    font-size: 1.5rem;
+    max-width: 400px;
+    margin-bottom: 40px;
+  }
+  a {
+    background-color: #00aaff;
+    color: #121212;
+    text-decoration: none;
+    padding: 12px 30px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    user-select: text;
+  }
+  a:hover {
+    background-color: #008ecc;
+  }
+</style>
+</head>
+<body>
+  <h1>Access Denied</h1>
+  <p>Your account has been banned from ODBIT.<br />If you believe this is a mistake, please contact support.</p>
+  <a href="sign-in.html">Back to Sign In</a>
+
+  <script>
+    // Simple check: if user is NOT banned (localStorage flag), redirect back
+    const banned = localStorage.getItem('bannedUser');
+    if (!banned) {
+      window.location.href = 'sign-in.html';
+    }
+  </script>
+</body>
+</html>
