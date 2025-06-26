@@ -89,6 +89,80 @@
       min-height: 1.2em;
       user-select: none;
     }
+    #account-banned-screen {
+      display: none; /* hidden by default */
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background-color: #111;
+      color: white;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      padding: 100px 20px;
+      box-sizing: border-box;
+      z-index: 10000;
+    }
+    #account-banned-screen h1 {
+      font-size: 5rem;
+      margin-bottom: 20px;
+      color: #FF0000;
+    }
+    #account-banned-screen p {
+      font-size: 1.8rem;
+      max-width: 600px;
+      margin: 0 auto 40px;
+      line-height: 1.4;
+    }
+    #account-banned-screen a {
+      color: #00aaff;
+      font-weight: bold;
+      font-size: 1.5rem;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.3s ease;
+    }
+    #account-banned-screen a:hover {
+      border-color: #00aaff;
+    }
+
+    /* Existing ban popup for admin banning */
+    #ban-popup {
+      display: none; /* HIDE by default */
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      font-size: 5rem;
+      text-align: center;
+      z-index: 9999;
+      padding-top: 15vh;
+      box-sizing: border-box;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 30px;
+    }
+    #ban-popup input {
+      font-size: 2rem;
+      padding: 10px;
+      width: 400px;
+      max-width: 90vw;
+      text-align: center;
+      border-radius: 5px;
+      border: none;
+    }
+    #ban-popup button {
+      font-size: 2rem;
+      padding: 10px 40px;
+      background-color: #ff0000;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    #ban-popup button:hover {
+      background-color: #cc0000;
+    }
   </style>
 </head>
 <body>
