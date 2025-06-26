@@ -118,44 +118,48 @@
     const message = document.getElementById('message');
 
     form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      message.textContent = '';
+  e.preventDefault();
+  message.textContent = '';
 
-      const specID = document.getElementById('specID').value.trim();
-      const pin = document.getElementById('pin').value.trim();
+  const specID = document.getElementById('specID').value.trim();
+  const pin = document.getElementById('pin').value.trim();
 
-      if (!specID || !pin) {
-        message.textContent = "All fields are required.";
-        return;
-      }
-
-      try {
-        const q = query(
-          collection(db, "users"),
-          where("spec_id", "==", specID),
-          where("pin", "==", pin)
-        );
-
-        const snapshot = await getDocs(q);
-
-        if (!snapshot.empty) {
-  const user = snapshot.docs[0].data();
-  if (user.banned) {
-    localStorage.setItem('bannedUser', 'true');
-    window.location.href = "not-approved.html";
-  } else {
-    localStorage.removeItem('bannedUser');
-    localStorage.setItem("userData", JSON.stringify({
-      spec_id: specID,
-      isAdmin: user.isAdmin || false
-    }));
-    window.location.href = "index.html";
+  if (!specID || !pin) {
+    message.textContent = "All fields are required.";
+    return;
   }
-} else {
-  message.textContent = "Invalid SpecID or PIN.";
-}
+
+  try {
+    const q = query(
+      collection(db, "users"),
+      where("spec_id", "==", specID),
+      where("pin", "==", pin)
+    );
+
+    const snapshot = await getDocs(q);
+
+    if (!snapshot.empty) {
+      const user = snapshot.docs[0].data();
+      if (user.banned) {
+        localStorage.setItem('bannedUser', 'true');
+        window.location.href = "not-approved.html";
+      } else {
+        localStorage.removeItem('bannedUser');
+        localStorage.setItem("userData", JSON.stringify({
+          spec_id: specID,
+          isAdmin: user.isAdmin || false
+        }));
+        window.location.href = "index.html";
       }
-    });
+    } else {
+      message.textContent = "Invalid SpecID or PIN.";
+    }
+  } catch (err) {
+    console.error(err);
+    message.textContent = "Error signing in.";
+  }
+});
+
   </script>
 </body>
 </html>
