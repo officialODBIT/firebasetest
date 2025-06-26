@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ODBIT | Search</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body { display: flex; height: 100vh; background-color: #1e1e1e; color: #fff; }
+    .sidebar {
+      width: 250px;
+      background-color: #111;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      border-right: 1px solid #333;
+    }
+    .sidebar button {
+      background-color: #222;
+      border: none;
+      padding: 12px;
+      color: #fff;
+      text-align: left;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .sidebar button:hover {
+      background-color: #333;
+    }
+    .main {
+      flex: 1;
+      padding: 30px;
+    }
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+    #search-section {
+      margin-bottom: 30px;
+    }
+    #search-section input {
+      padding: 10px;
+      font-size: 1rem;
+      width: 250px;
+      margin-right: 10px;
+      background-color: #2a2a2a;
+      border: 1px solid #444;
+      color: #eee;
+      outline-offset: 2px;
+    }
+    #search-section input:focus {
+      border-color: #00aaff;
+      outline: none;
+      box-shadow: 0 0 6px #00aaff;
+    }
+    #search-section button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #00aaff;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+    }
+    #search-section button:hover {
+      background-color: #008ecc;
+    }
+    #result {
+      font-size: 1.1rem;
+      white-space: pre-wrap;
+      background-color: #2a2a2a;
+      padding: 20px;
+      border: 1px solid #444;
+      max-width: 600px;
+      border-radius: 4px;
+      color: #ddd;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <button onclick="alert('Feature not implemented')">Home</button>
+    <button onclick="alert('Feature not implemented')">Reports</button>
+    <button onclick="alert('Feature not implemented')">Settings</button>
+    <button onclick="logout()">Logout</button>
+  </div>
+  <div class="main">
+    <h1>Search Users</h1>
+    <div id="search-section">
+      <input type="text" id="search-input" placeholder="Enter SpecID or ID" />
+      <button id="search-btn">Search</button>
+    </div>
+    <div id="result"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      query,
+      where,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDb8ffuJWKuKk64IuSoHuEQI60B_0OOW3s",
+      authDomain: "odbit-site-database.firebaseapp.com",
+      projectId: "odbit-site-database",
+      storageBucket: "odbit-site-database.firebasestorage.app",
+      messagingSenderId: "673458512809",
+      appId: "1:673458512809:web:eeff2dca57860178481ab8"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Require user to be signed in, else redirect to sign-in page
+    const userData = JSON.parse(localStorage.getItem("userData"));
+    if (!userData || !userData.spec_id) {
+      window.location.href = "sign-in.html";
+    }
+
+    document.getElementById("search-btn").addEventListener("click", async () => {
+      const input = document.getElementById("search-input").value.trim();
+      const resultDiv = document.getElementById("result");
+      resultDiv.textContent = "Searching...";
+
+      if (!input) {
+        resultDiv.textContent = "Please enter a SpecID or ID.";
+        return;
+      }
+
+      try {
+        // Query for spec_id match
+        let q = query(collection(db, "users"), where("spec_id", "==", input));
+        let snapshot = await getDocs(q);
+
+        // If no match on spec_id, query for id match
+        if (snapshot.empty) {
+          q = query(collection(db, "users"), where("id", "==", input));
+          snapshot = await getDocs(q);
+        }
+
+        if (snapshot.empty) {
+          resultDiv.textContent = "No user found.";
+          return;
+        }
+
+        // Show first matched user info prettily
+        const user = snapshot.docs[0].data();
+        const display = `
+SpecID: ${user.spec_id}
+ID: ${user.id || "(none)"}
+Banned: ${user.banned ? "Yes" : "No"}
+Admin: ${user.isAdmin ? "Yes" : "No"}
+Staff: ${user.isStaff ? "Yes" : "No"}
+        `;
+        resultDiv.textContent = display;
+
+      } catch (err) {
+        console.error(err);
+        resultDiv.textContent = "Error occurred during search.";
+      }
+    });
+
+    window.logout = function() {
+      localStorage.removeItem("userData");
+      window.location.href = "sign-in.html";
+    }
+  </script>
+</body>
+</html>
