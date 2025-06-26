@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>ODBIT | Sign In</title>
   <style>
-    /* Reset and base */
+    /* your dark style form container from before */
     * {
       margin: 0; padding: 0; box-sizing: border-box;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -19,20 +19,16 @@
       justify-content: center;
       user-select: none;
     }
-
-    /* Centered form container */
     #form-container {
       background-color: #1e1e1e;
       width: 380px;
       padding: 30px 40px;
       box-shadow: 0 0 15px rgba(255,255,255,0.05);
       border: 1px solid #333;
-      /* NO border-radius */
       display: flex;
       flex-direction: column;
       gap: 20px;
     }
-
     h2 {
       font-weight: 600;
       font-size: 2rem;
@@ -40,14 +36,12 @@
       color: #ccc;
       user-select: text;
     }
-
     label {
       font-size: 1rem;
       margin-bottom: 6px;
       color: #bbb;
       user-select: text;
     }
-
     input[type="text"],
     input[type="password"] {
       width: 100%;
@@ -57,7 +51,6 @@
       color: #eee;
       font-size: 1rem;
       outline-offset: 2px;
-      /* no border-radius */
       user-select: text;
     }
     input[type="text"]:focus,
@@ -66,7 +59,6 @@
       outline: none;
       box-shadow: 0 0 6px #00aaff;
     }
-
     button[type="submit"] {
       background-color: #00aaff;
       border: none;
@@ -76,92 +68,16 @@
       color: #121212;
       cursor: pointer;
       transition: background-color 0.25s ease;
-      /* no border-radius */
     }
     button[type="submit"]:hover {
       background-color: #008ecc;
     }
-
     #message {
       text-align: center;
       font-size: 1rem;
       color: #ff5555;
       min-height: 1.2em;
       user-select: none;
-    }
-    #account-banned-screen {
-      display: none; /* hidden by default */
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background-color: #111;
-      color: white;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      text-align: center;
-      padding: 100px 20px;
-      box-sizing: border-box;
-      z-index: 10000;
-    }
-    #account-banned-screen h1 {
-      font-size: 5rem;
-      margin-bottom: 20px;
-      color: #FF0000;
-    }
-    #account-banned-screen p {
-      font-size: 1.8rem;
-      max-width: 600px;
-      margin: 0 auto 40px;
-      line-height: 1.4;
-    }
-    #account-banned-screen a {
-      color: #00aaff;
-      font-weight: bold;
-      font-size: 1.5rem;
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.3s ease;
-    }
-    #account-banned-screen a:hover {
-      border-color: #00aaff;
-    }
-
-    /* Existing ban popup for admin banning */
-    #ban-popup {
-      display: none; /* HIDE by default */
-      position: fixed;
-      top: 0; left: 0; width: 100vw; height: 100vh;
-      background: rgba(0,0,0,0.9);
-      color: white;
-      font-size: 5rem;
-      text-align: center;
-      z-index: 9999;
-      padding-top: 15vh;
-      box-sizing: border-box;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 30px;
-    }
-    #ban-popup input {
-      font-size: 2rem;
-      padding: 10px;
-      width: 400px;
-      max-width: 90vw;
-      text-align: center;
-      border-radius: 5px;
-      border: none;
-    }
-    #ban-popup button {
-      font-size: 2rem;
-      padding: 10px 40px;
-      background-color: #ff0000;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    #ban-popup button:hover {
-      background-color: #cc0000;
     }
   </style>
 </head>
@@ -171,27 +87,11 @@
     <form id="sign-in-form" autocomplete="off">
       <label for="specID">SpecID *</label>
       <input type="text" id="specID" name="specID" required autocomplete="off" />
-
       <label for="pin">PIN *</label>
       <input type="password" id="pin" name="pin" required autocomplete="off" />
-
       <button type="submit">Sign In</button>
     </form>
     <p id="message"></p>
-  </div>
-
-  <div id="ban-popup">
-    <div>BAN</div>
-    <input type="text" id="ban-specid" />
-    <button id="ban-button">Ban User</button>
-  </div>
-
-  <!-- Account Banned Fullscreen Screen -->
-  <div id="account-banned-screen">
-    <h1>Account Banned</h1>
-    <p>Your account has been banned from ODBIT.</p>
-    <p>Please contact support for more information or appeals.</p>
-    <p><a href="mailto:support@odbit.org">Contact Support</a></p>
   </div>
 
   <script type="module">
@@ -202,8 +102,6 @@
       query,
       where,
       getDocs,
-      doc,
-      updateDoc
     } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -220,13 +118,9 @@
 
     const form = document.getElementById('sign-in-form');
     const message = document.getElementById('message');
-    const banPopup = document.getElementById('ban-popup');
-    const banSpecIDInput = document.getElementById('ban-specid');
-    const banButton = document.getElementById('ban-button');
-    const bannedScreen = document.getElementById('account-banned-screen');
 
-    // Store current signed-in user's doc ID for banning
-    let currentUserDocId = null;
+    // Clear banned flag on page load
+    localStorage.removeItem('bannedUser');
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -251,23 +145,18 @@
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-          // User found
           const userDoc = querySnapshot.docs[0];
           const userData = userDoc.data();
-          currentUserDocId = userDoc.id;
 
-          if(userData.banned === true){
-            // Show banned screen, hide form and message
-            bannedScreen.style.display = 'block';
-            form.style.display = 'none';
-            message.textContent = '';
+          if (userData.banned === true) {
+            // Set banned flag in localStorage and redirect to not-approved page
+            localStorage.setItem('bannedUser', 'true');
+            window.location.href = 'not-approved.html';
           } else {
+            localStorage.removeItem('bannedUser');
             message.style.color = 'green';
             message.textContent = "Sign in successful!";
-
-            // Show Ban popup and fill SpecID
-            banSpecIDInput.value = specID;
-            banPopup.style.display = 'flex';
+            // You can redirect to dashboard or another page here
           }
         } else {
           message.textContent = "Incorrect SpecID or PIN.";
@@ -277,44 +166,6 @@
         message.textContent = "Error signing in. Please try again.";
       }
     });
-
-    banButton.addEventListener('click', async () => {
-  const specToBan = banSpecIDInput.value.trim();
-  if (!specToBan) {
-    alert("Please enter a SpecID to ban.");
-    return;
-  }
-
-  try {
-    // Query user doc with matching spec_id
-    const q = query(collection(db, "users"), where("spec_id", "==", specToBan));
-    const querySnapshot = await getDocs(q);
-
-    if (querySnapshot.empty) {
-      alert(`No user found with SpecID: ${specToBan}`);
-      return;
-    }
-
-    // Assuming spec_id is unique, get the first doc
-    const userDoc = querySnapshot.docs[0];
-    const userDocRef = doc(db, "users", userDoc.id);
-
-    // Update banned field
-    await updateDoc(userDocRef, { banned: true });
-
-    alert(`User ${specToBan} has been banned.`);
-    banPopup.style.display = 'none';
-    message.textContent = '';
-    form.reset();
-    form.style.display = 'block'; // show form after ban
-    bannedScreen.style.display = 'none';
-
-  } catch (error) {
-    console.error("Error banning user:", error);
-    alert("Failed to ban user. Try again.");
-  }
-});
-
   </script>
 </body>
 </html>
